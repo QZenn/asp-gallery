@@ -1,0 +1,28 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeFile="Site.master.cs" Inherits="SiteMaster" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head runat="server">
+    <title>Thumbnails</title>
+    <link href="Styles/style.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="Styles/jquery.lightbox-0.5.css" media="screen" />
+    <link rel="shortcut icon" href="assets/favicon.ico" />
+    <script type="text/javascript" src="Scripts/jquery-1.7.2.js"></script>
+    <script type="text/javascript" src="Scripts/jquery.lightbox-0.5.pack.js"></script>
+    <asp:ContentPlaceHolder ID="HeadContent" runat="server">
+    </asp:ContentPlaceHolder>
+</head>
+<body>
+    <form runat="server">
+
+        <div id=main>
+            <div class="pagetitle">
+	    		    <p>Golf Gallery</p>
+	        </div>
+            <div class="mainblock">
+                <asp:ContentPlaceHolder ID="MainContent" runat="server"/>
+            </div>
+        </div>
+    </form>
+</body>
+</html>

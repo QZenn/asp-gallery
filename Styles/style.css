@@ -1,0 +1,107 @@
+.pagetitle {
+	position: fixed;
+	background-color: #d0e4fe;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	border: 0px;
+	text-align: center;
+	margin: 0px;
+	padding: 0px;
+	font-size: 25px;
+	font-family: Arial;
+}
+
+body {
+	margin: 0px;
+	padding: 0px;
+	border: 0px;
+	height: 100%;
+	width: 100%;
+	text-align: center;
+	
+	background-image: url("../assets/wallpaper.jpg");
+	background-repeat: repeat;
+	background-position: top left;
+}
+
+#main {
+	margin: 0px;
+	padding: 0px;
+	border: 0px;
+	height: 100%;
+	display: block;
+}
+.mainblock {
+	display: table;
+	position: static;
+	height: inherit;
+	overflow: auto;
+	padding-left: 30px;
+	padding-top: 100px;
+}
+.elementsurround{
+	float: left;
+	height: 300px;
+	width: 300px;
+}
+div.elementsurround a,
+div.elementsurround a:hover,
+div.elementsurround a:link
+div.elementsurround a:visited{
+	text-decoration: none;
+	border: none;
+	font-family:sans-serif;
+	color:#000;
+}
+.element{
+	display: table-cell;
+	background-color: #919CA2;
+	height: 250px;
+	width: 250px;
+	margin: 20px;
+	float:left;
+	border: 2px solid black;
+	border-radius: 25px;
+	box-shadow: 4px 4px 2px #707070;
+}
+table.elementimage {
+	height: 200px;
+	width: 250px;
+	padding-bottom: 0px;
+	vertical-align: middle;
+}
+table.elementimage td 
+{
+    padding-bottom: 0px;
+	vertical-align: middle;
+}
+
+.image{
+	display: block;
+	overflow: hidden;
+	vertical-align: middle;
+	margin: auto;
+    padding: 0px;
+    border: 1px solid gray;
+}
+.elementtext{
+	bottom: 0px;
+	height: 25px;
+	font-size: 18px;
+	width: 100%;
+	padding: 0px;
+	margin: 0px;
+	border: 0px;
+	vertical-align: middle;
+}
+.text{
+	
+}
+
+#zoom {
+	position: absolute;
+	z-index: 10;
+	visibility: hidden;
+	
+}
