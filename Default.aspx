@@ -52,7 +52,6 @@
                             newelementimagetdheight = newelementimagetdwidth * (elementimagetdheight/elementimagetdwidth);
                         };
                         
-
 	        			$(this).animate({
 					  		marginTop: newelementmarginheight + "px",
                             marginBottom: newelementmarginheight + "px",
@@ -112,19 +111,4 @@
 	    	</div>
         </ItemTemplate>
     </asp:Repeater>
-
-	    		
-	    		<div class="elementsurround">
-	    			<a href="images_for_gallery/img26485-11783311783.jpg" title="Accuracy">
-			    		<div class="element">
-			    			<table class="elementimage"><tr><td>
-			    				<img class="image" src="images_for_gallery/img26485-11783311783.jpg" width="80%">
-			    			</td></tr></table>
-			    			<div class="elementtext">
-			    				<p class="text">Accuracy</p>
-			    			</div>
-			    		</div>
-			    	</a>
-	    		</div>
-
 </asp:Content>

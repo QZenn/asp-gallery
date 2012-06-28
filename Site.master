@@ -17,7 +17,7 @@
 
         <div id=main>
             <div class="pagetitle">
-	    		    <p>Golf Gallery</p>
+	    		    <p>Gallery</p>
 	        </div>
             <div class="mainblock">
                 <asp:ContentPlaceHolder ID="MainContent" runat="server"/>
