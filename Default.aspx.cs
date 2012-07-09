@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using System.Web;
 using System.Web.UI;
@@ -10,73 +11,96 @@ using System.IO;
 
 public partial class _Default : System.Web.UI.Page
 {
+    private static System.Collections.ArrayList lockersList = new System.Collections.ArrayList();
+    
+
     protected void Page_Load(object sender, EventArgs e)
     {
         string pathToThumbnailsFolder = Server.MapPath(@"generated_thumbs\");
         string pathToSourceFolder = Server.MapPath("images_for_gallery");
-        string[] files = System.IO.Directory.GetFiles(pathToSourceFolder, "*.jpg", System.IO.SearchOption.TopDirectoryOnly);
 
         int thumbMaxWidth = 180;
         int thumbMaxHeight = 180;
-        //GenerateThumbnailsForFolder(pathToSourceFolder, pathToThumbnailsFolder, thumbMaxWidth, thumbMaxHeight);
-
+        
+        ArrayList generatedValues = GenerateThumbnailsForFolder(pathToSourceFolder, pathToThumbnailsFolder, thumbMaxWidth, thumbMaxHeight);
         System.Collections.ArrayList sourceValues = new System.Collections.ArrayList();
-        foreach (string path in files)
+        foreach (ThumbnailData data in generatedValues)
         {
-            System.Drawing.Image image = System.Drawing.Image.FromFile(path);
-            int[] imageDimensionsXY = new int[2];
-            imageDimensionsXY[0] = image.Width;
-            imageDimensionsXY[1] = image.Height;
-            int[] thumbnailSizeXY = CalculateThumbnailSize(imageDimensionsXY, thumbMaxWidth, thumbMaxHeight);
-            System.Drawing.Bitmap bitmap = ResizeImage(image, thumbnailSizeXY[0], thumbnailSizeXY[1]);
-            string filename = (path.Substring(path.LastIndexOf("\\") + 1));
-            string thumbnailPath = (pathToThumbnailsFolder + filename);
-            SaveImageToJpegFile(bitmap, thumbnailPath);
-            bitmap.Dispose();
-            image.Dispose();
-
-            sourceValues.Add(new ThumbnailData(("images_for_gallery/" + filename), ("generated_thumbs/" + filename), filename, thumbnailSizeXY[0], thumbnailSizeXY[1]));
+            sourceValues.Add(new ThumbnailData(("images_for_gallery/" + data.filename), ("generated_thumbs/" + data.filename), data.filename));
         }
         RepeaterThumbnails.DataSource = sourceValues;
         RepeaterThumbnails.DataBind();
-
-        
     }
+
     public class ThumbnailData
     {
         public string pathToSourceImage {get; set;}
         public string pathToThumbnailImage { get; set; }
         public string filename { get; set; }
-        public int width { get; set; }
-        public int height { get; set; }
 
-        public ThumbnailData(string pathToSourceImage, string pathToThumbnailImage, string filename, int width, int height)
+        public ThumbnailData(string pathToSourceImage, string pathToThumbnailImage, string filename)
         {
             this.pathToSourceImage = pathToSourceImage;
             this.pathToThumbnailImage = pathToThumbnailImage;
             this.filename = filename;
-            this.width = width;
-            this.height = height;
         }
     }
 
-    private void GenerateThumbnailsForFolder(string pathToFolder, string ThumbnailsFolderPath, int thumbMaxWidth, int thumbMaxHeight)
+    private ArrayList GenerateThumbnailsForFolder(string pathToFolder, string ThumbnailsFolderPath, int thumbMaxWidth, int thumbMaxHeight)
     {
+        ArrayList generatedThumbnails = new ArrayList();
         string[] files = Directory.GetFiles(pathToFolder, "*.jpg", SearchOption.TopDirectoryOnly);
-        foreach (string path in files)
+        foreach (string sourcePath in files)
         {
-            System.Drawing.Image image = System.Drawing.Image.FromFile(path);
-            int[] imageDimensionsXY = new int[2];
-            imageDimensionsXY[0] = image.Width;
-            imageDimensionsXY[1] = image.Height;
-            int[] thumbnailSizeXY = CalculateThumbnailSize(imageDimensionsXY, thumbMaxWidth, thumbMaxHeight);
-            System.Drawing.Bitmap bitmap = ResizeImage(image, thumbnailSizeXY[0], thumbnailSizeXY[1]);
-            string filename = (path.Substring(path.LastIndexOf("\\") + 1));
-            string thumbnailPath = (ThumbnailsFolderPath + filename);
-            SaveImageToJpegFile(bitmap, thumbnailPath);
-            bitmap.Dispose();
-            image.Dispose();
+            string filename = (sourcePath.Substring(sourcePath.LastIndexOf("\\") + 1));
+            string destinationPath = (ThumbnailsFolderPath + filename);
+
+            lock (Locker.lockString(destinationPath))
+            {
+                if (needGenerateThumbnail(sourcePath, destinationPath))
+                {
+                    GenerateThumbnailForImage(sourcePath, destinationPath, thumbMaxWidth, thumbMaxHeight);
+                }
+                Locker.unlockString(destinationPath);
+            }
+
+            generatedThumbnails.Add(new ThumbnailData(sourcePath, destinationPath, filename) );
         }
+
+        return generatedThumbnails;
+    }
+
+    private Boolean needGenerateThumbnail(string sourcePath, string destinationPath)
+    {
+        Boolean needNewThumbnail = true;
+        if (File.Exists(sourcePath)&&File.Exists(destinationPath))
+        {
+            int compareResult = DateTime.Compare(
+                File.GetLastWriteTime(sourcePath),
+                File.GetLastWriteTime(destinationPath));
+            if (compareResult > 0)
+            {
+                needNewThumbnail = true;
+            }
+            else
+            {
+                needNewThumbnail = false;
+            }
+        }
+        return needNewThumbnail;
+    }
+
+    private static void GenerateThumbnailForImage(string sourcePath, string destinationPath, int thumbMaxWidth, int thumbMaxHeight)
+    {
+        System.Drawing.Image image = System.Drawing.Image.FromFile(sourcePath);
+        int[] imageDimensionsXY = new int[2];
+        imageDimensionsXY[0] = image.Width;
+        imageDimensionsXY[1] = image.Height;
+        int[] thumbnailSizeXY = CalculateThumbnailSize(imageDimensionsXY, thumbMaxWidth, thumbMaxHeight);
+        System.Drawing.Bitmap bitmap = ResizeImage(image, thumbnailSizeXY[0], thumbnailSizeXY[1]);
+        SaveImageToJpegFile(bitmap, destinationPath);
+        bitmap.Dispose();
+        image.Dispose();
     }
 
     private static int[] CalculateThumbnailSize(int[] imageDimensionsXY, int thumbMaxWidth, int thumbMaxHeight)
@@ -145,5 +169,69 @@ public partial class _Default : System.Web.UI.Page
                 return encoders[j];
         }
         return null;
+    }
+
+    private class Locker
+    {
+        private static Object locker = new Object();
+        public string lockStr;
+
+        private Locker(string str){
+            lockStr = str;
+        }
+        public static Locker lockString(string str)
+        {
+            lock (locker)
+            {
+                Locker returnvalue = new Locker("");
+                Boolean pathAlreadyLocked = false;
+                ArrayList stringToDelete = new ArrayList();
+                foreach (Locker path in lockersList)
+                {
+                    if (String.Equals(path.lockStr, str))
+                    {
+                        if (pathAlreadyLocked)
+                        {
+                            stringToDelete.Add(path);
+                        }
+                        else
+                        {
+                            pathAlreadyLocked = true;
+                            returnvalue = path;
+                        }
+                    }
+                }
+                foreach (Locker item in stringToDelete)
+                {
+                    lockersList.Remove(item);
+                }
+                if (!pathAlreadyLocked)
+                {
+                    returnvalue = new Locker(str);
+                    lockersList.Add(returnvalue);
+                }
+
+                return returnvalue;
+            }
+        }
+
+        public static void unlockString(string str)
+        {
+            lock (locker)
+            {
+                ArrayList stringToDelete = new ArrayList();
+                foreach (Locker path in lockersList)
+                {
+                    if (String.Equals(path.lockStr, str))
+                    {
+                        stringToDelete.Add(path);
+                    }
+                }
+                foreach (Locker item in stringToDelete)
+                {
+                    lockersList.Remove(item);
+                }
+            }
+        }
     }
 }
