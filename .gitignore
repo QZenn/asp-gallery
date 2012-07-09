@@ -1,2 +1,6 @@
-/images_for_gallery/*.jpg
-/generated_thumbs/*.jpg
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+

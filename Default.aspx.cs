@@ -13,7 +13,6 @@ public partial class _Default : System.Web.UI.Page
 {
     private static System.Collections.ArrayList lockersList = new System.Collections.ArrayList();
     
-
     protected void Page_Load(object sender, EventArgs e)
     {
         string pathToThumbnailsFolder = Server.MapPath(@"generated_thumbs\");
@@ -26,8 +25,12 @@ public partial class _Default : System.Web.UI.Page
         System.Collections.ArrayList sourceValues = new System.Collections.ArrayList();
         foreach (ThumbnailData data in generatedValues)
         {
-            sourceValues.Add(new ThumbnailData(("images_for_gallery/" + data.filename), ("generated_thumbs/" + data.filename), data.filename));
+            sourceValues.Add(new ThumbnailData(
+                ("images_for_gallery/" + data.filename),
+                ("generated_thumbs/" + data.filename), 
+                data.filename));
         }
+
         RepeaterThumbnails.DataSource = sourceValues;
         RepeaterThumbnails.DataBind();
     }
@@ -49,25 +52,38 @@ public partial class _Default : System.Web.UI.Page
     private ArrayList GenerateThumbnailsForFolder(string pathToFolder, string ThumbnailsFolderPath, int thumbMaxWidth, int thumbMaxHeight)
     {
         ArrayList generatedThumbnails = new ArrayList();
-        string[] files = Directory.GetFiles(pathToFolder, "*.jpg", SearchOption.TopDirectoryOnly);
+        string[] files = Directory.GetFiles(pathToFolder, "*", SearchOption.TopDirectoryOnly);
         foreach (string sourcePath in files)
         {
-            string filename = (sourcePath.Substring(sourcePath.LastIndexOf("\\") + 1));
-            string destinationPath = (ThumbnailsFolderPath + filename);
-
-            lock (Locker.lockString(destinationPath))
+            if (isImage(Path.GetExtension(sourcePath)))
             {
-                if (needGenerateThumbnail(sourcePath, destinationPath))
-                {
-                    GenerateThumbnailForImage(sourcePath, destinationPath, thumbMaxWidth, thumbMaxHeight);
-                }
-                Locker.unlockString(destinationPath);
-            }
+                string filename = (sourcePath.Substring(sourcePath.LastIndexOf("\\") + 1));
+                string destinationPath = (ThumbnailsFolderPath + filename);
 
-            generatedThumbnails.Add(new ThumbnailData(sourcePath, destinationPath, filename) );
+                lock ("Locker.lockString(destinationPath)")
+                {
+                    if (needGenerateThumbnail(sourcePath, destinationPath))
+                    {
+                        GenerateThumbnailForImage(sourcePath, destinationPath, thumbMaxWidth, thumbMaxHeight);
+                    }
+                    Locker.unlockString(destinationPath);
+                }
+
+                generatedThumbnails.Add(new ThumbnailData(sourcePath, destinationPath, filename));
+            }
         }
 
         return generatedThumbnails;
+    }
+
+    private static bool isImage(string ext)
+    {
+        ext = ext.ToLower();
+        return (ext == ".jpg") || 
+               (ext == ".jpeg") || 
+               (ext == ".gif") || 
+               (ext == ".png") || 
+               (ext == ".bmp");
     }
 
     private Boolean needGenerateThumbnail(string sourcePath, string destinationPath)
@@ -134,6 +150,11 @@ public partial class _Default : System.Web.UI.Page
         imagecodec = GetEncoderInfo("image/jpeg");
         encoderparams = new System.Drawing.Imaging.EncoderParameters(1);
         encoderparams.Param[0] = new System.Drawing.Imaging.EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 100L);
+        // Multithreading debug code
+        //if (File.Exists(path))
+        //{
+        //    File.WriteAllText((path + ".error"), "error");
+        //}
         bitmap.Save(path, imagecodec, encoderparams);
     }
 
