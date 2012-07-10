@@ -26,8 +26,8 @@ public partial class _Default : System.Web.UI.Page
         foreach (ThumbnailData data in generatedValues)
         {
             sourceValues.Add(new ThumbnailData(
-                ("images_for_gallery/" + data.filename),
-                ("generated_thumbs/" + data.filename), 
+                ("images_for_gallery/" + data.pathToSourceImage.Substring(data.pathToSourceImage.LastIndexOf("\\") + 1)),
+                ("generated_thumbs/" + data.pathToThumbnailImage.Substring(data.pathToThumbnailImage.LastIndexOf("\\") + 1)), 
                 data.filename));
         }
 
@@ -58,9 +58,10 @@ public partial class _Default : System.Web.UI.Page
             if (isImage(Path.GetExtension(sourcePath)))
             {
                 string filename = (sourcePath.Substring(sourcePath.LastIndexOf("\\") + 1));
-                string destinationPath = (ThumbnailsFolderPath + filename);
+                filename = filename.Substring(0, (filename.Length - Path.GetExtension(sourcePath).Length));
+                string destinationPath = (ThumbnailsFolderPath + filename + ".jpg");
 
-                lock ("Locker.lockString(destinationPath)")
+                lock (Locker.lockString(destinationPath))
                 {
                     if (needGenerateThumbnail(sourcePath, destinationPath))
                     {
@@ -150,11 +151,13 @@ public partial class _Default : System.Web.UI.Page
         imagecodec = GetEncoderInfo("image/jpeg");
         encoderparams = new System.Drawing.Imaging.EncoderParameters(1);
         encoderparams.Param[0] = new System.Drawing.Imaging.EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 100L);
-        // Multithreading debug code
-        //if (File.Exists(path))
-        //{
-        //    File.WriteAllText((path + ".error"), "error");
-        //}
+         //Multithreading debug code
+#if DEBUG
+        if (File.Exists(path))
+        {
+            File.WriteAllText((path + ".error"), "error");
+        }
+#endif
         bitmap.Save(path, imagecodec, encoderparams);
     }
 
