@@ -98,7 +98,7 @@
     <asp:Repeater ID="RepeaterThumbnails" runat="server">
         <ItemTemplate>
             <div class="elementsurround">
-	    		<a href="<%# Eval("pathToSourceImage") %>" title="<%# Eval("filename")%>">
+	    		<a href="ImageHandler.ashx?file=<%# Eval("pathToSourceImage") %>&thumb=false" title="<%# Eval("filename")%>">
 			    	<div class="element">
 			    		<table class="elementimage"><tr><td>
 			    			<img class="image" src="<%# Eval("pathToThumbnailImage") %>" alt="<%# Eval("filename")%>">

@@ -21,6 +21,7 @@ public partial class _Default : System.Web.UI.Page
         int thumbMaxWidth = 180;
         int thumbMaxHeight = 180;
         
+               
         ArrayList generatedValues = GenerateThumbnailsForFolder(pathToSourceFolder, pathToThumbnailsFolder, thumbMaxWidth, thumbMaxHeight);
         System.Collections.ArrayList sourceValues = new System.Collections.ArrayList();
         foreach (ThumbnailData data in generatedValues)
@@ -48,6 +49,77 @@ public partial class _Default : System.Web.UI.Page
             this.filename = filename;
         }
     }
+
+    private string rigthTrim (string str)
+    {
+        int length = str.Length;
+        int end = str.LastIndexOf(" ");
+        for (int i = length; i >= end; --i)
+        {
+            if (str.EndsWith(" "))
+            {
+                str.Remove(i);
+            }
+        }
+        return str;
+    }
+
+    private string leftTrim(string str)
+    {
+        int length = str.Length;
+        int end = str.IndexOf(" ");
+        for (int i = 1; i <= end; ++i)
+        {
+            if (str.StartsWith(" "))
+            {
+                str.Remove(i);
+            }
+        }
+        return str;
+    }
+
+
+    public string Trim(string str)
+    {
+        return leftSpaceTrim(rightSpaceTrim(str));
+    }
+    
+    private static string rightSpaceTrim(string str)
+        {
+            int startPosition = str.Length - 1;
+
+            while (str[startPosition].Equals(' '))
+            {
+                startPosition--;
+            }
+
+            str = str.Substring(0, startPosition + 1);
+            return str;
+        }
+
+
+        private static string leftSpaceTrim(string str)
+        {
+            int startPosition = 0;
+
+            while (str[startPosition].Equals(' ') && (startPosition < str.Length))
+            {
+                startPosition++;
+            }
+
+            str = str.Substring(startPosition);
+            return str;
+        }
+
+        static void Main(string[] args)
+        {
+
+            String str = "Хер";
+            str = rightSpaceTrim(str);
+            str = leftSpaceTrim(str);
+            str = rightSpaceTrim(str);
+        }
+
 
     private ArrayList GenerateThumbnailsForFolder(string pathToFolder, string ThumbnailsFolderPath, int thumbMaxWidth, int thumbMaxHeight)
     {
